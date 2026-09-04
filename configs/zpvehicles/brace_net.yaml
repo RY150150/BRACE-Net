@@ -1,0 +1,56 @@
+model:
+  NAME: BRACENet
+  encoder_args:
+    NAME: BRACEEncoder
+    blocks: [1, 1, 1, 1, 1]
+    strides: [1, 4, 4, 4, 4]
+    sa_layers: 2
+    sa_use_res: True
+    width: 32
+    in_channels: 3
+    expansion: 4
+    radius: 0.1
+    nsample: 32
+    geo_prior: True
+    geo_prior_dim: 5
+    geo_hidden_dim: 16
+    geo_fusion: add
+    geo_stages: [0, 1, 2, 3, 4]
+    aggr_args:
+      feature_type: dp_fj
+      reduction: max
+    group_args:
+      NAME: ballquery
+      normalize_dp: True
+    conv_args:
+      order: conv-norm-act
+    act_args:
+      act: relu
+    norm_args:
+      norm: bn
+  decoder_args:
+    NAME: HierarchicalPointDecoder
+  cls_args:
+    NAME: SegHead
+    num_classes: 2
+    in_channels: null
+    norm_args:
+      norm: bn
+  boundary_args:
+    NAME: SegHead
+    num_classes: 2
+    in_channels: null
+    mlps: [12]
+    dropout: 0.0
+    norm_args:
+      norm: bn
+  triplane_grid_size: 64
+  triplane_dropout: 0.1
+  triplane_logit_alpha_init: 0.01
+
+boundary_aux:
+  enabled: True
+  knn_k: 16
+  chunk_size: 1024
+  lambda_b: 0.2
+  balanced_loss: True

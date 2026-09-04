@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Native builds
+build/
+dist/
+*.so
+*.o
+*.egg
+
+# Experiment artifacts
+log/
+output/
+wandb/
+runs/
+slurm_logs/
+
+# Data and model artifacts
+data/raw/
+data/processed/
+*.pth
+*.pt
+*.ckpt
+*.onnx
+*.bin
+*.npz
+*.npy
+
+# Local environment
+.env
+.venv/
+venv/
+.DS_Store

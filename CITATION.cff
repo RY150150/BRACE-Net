@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use BRACE-Net, please cite the associated manuscript."
+title: "BRACE-Net"
+type: software
+authors:
+  - family-names: Lin
+    given-names: Yi
+  - family-names: Huang
+    given-names: Jin
+date-released: 2026-09-04
+license: MIT
+repository-code: "https://github.com/RY150150/BRACE-Net"
+preferred-citation:
+  type: article
+  title: "BRACE-Net: Lightweight False-Positive-Sensitive LiDAR Point-Cloud Segmentation for Truck-Bed Perception"
+  authors:
+    - family-names: Lin
+      given-names: Yi
+    - family-names: Huang
+      given-names: Jin

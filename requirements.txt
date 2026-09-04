@@ -1,0 +1,22 @@
+--find-links https://download.pytorch.org/whl/cu113/torch_stable.html
+--find-links https://data.pyg.org/whl/torch-1.10.0+cu113.html
+
+torch==1.10.0+cu113
+torchvision==0.11.1+cu113
+torch-scatter==2.0.9
+numpy==1.21.4
+scikit-learn==1.0.2
+h5py==3.6.0
+pandas==2.0.3
+PyYAML==6.0
+easydict==1.9
+tensorboard==2.8.0
+protobuf==3.19.4
+termcolor==1.1.0
+tqdm==4.62.3
+multimethod==1.7
+ninja==1.10.2.3
+wandb==0.24.2
+setuptools==59.5.0
+Cython==0.29.28
+shortuuid==1.0.13
