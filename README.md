@@ -11,10 +11,10 @@ encoder:
 - training-only boundary supervision with 16-nearest-neighbor targets;
 - a 64x64 XY/XZ/YZ Tri-Plane residual-logit branch.
 
-This repository contains the final model configuration and the authorized,
-processed dataset used by the paper. It does not include pretrained weights,
-checkpoints, raw source files, paper drafts, web applications, or alternative
-ablation models.
+This repository contains the final model configuration, its released weight,
+and the authorized processed dataset used by the paper. It does not include
+training-state checkpoints, raw source files, paper drafts, web applications,
+or alternative ablation models.
 
 ## Environment
 
@@ -60,6 +60,28 @@ cp data/splits/*.txt data/processed/splits/
 
 Source label `2` is mapped to `truck_bed`; labels `0`, `1`, and `3` are mapped
 to `non_bed`.
+
+## Released Weight
+
+`weights/brace_net_final.pth` is the best-validation checkpoint from seed 0
+for the paper's final BRACE-Net architecture. It contains model state only;
+optimizer and scheduler states have been removed. The paper's reported tables
+remain averages over seeds 0, 1, and 2.
+
+Evaluate the released weight on the held-out test split with:
+
+```bash
+python train.py --cfg configs/zpvehicles/brace_net.yaml \
+  mode=val \
+  pretrained_path=weights/brace_net_final.pth \
+  dataset.val.split=test
+```
+
+SHA-256:
+
+```text
+28c7d2bd0ab0ecfbadba69e8ca2c7292c7dc6e01e125d66514efd2948b25a60c
+```
 
 ## Multi-Seed Training
 

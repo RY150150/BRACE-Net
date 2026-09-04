@@ -36,6 +36,10 @@ data/processed/*
 !data/processed/splits/
 !data/processed/splits/*.txt
 
+# Released final-model weights; all other checkpoints remain ignored.
+!weights/
+!weights/brace_net_final.pth
+
 # Local environment
 .env
 .venv/

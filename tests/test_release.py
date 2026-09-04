@@ -80,13 +80,15 @@ class ReleaseIntegrityTests(unittest.TestCase):
 
     def test_release_contains_no_weights_or_old_repository_branding(self):
         weight_suffixes = {".pth", ".pt", ".ckpt", ".onnx", ".bin"}
+        released_weight = ROOT / "weights/brace_net_final.pth"
         forbidden = ("point" + "next", "open" + "points")
         excluded = {ROOT / "THIRD_PARTY_NOTICES.md", ROOT / "licenses/third-party-backbone-MIT.txt"}
 
         for path in ROOT.rglob("*"):
             if not path.is_file() or ".git" in path.parts or path in excluded:
                 continue
-            self.assertNotIn(path.suffix.lower(), weight_suffixes, str(path))
+            if path.suffix.lower() in weight_suffixes:
+                self.assertEqual(path, released_weight, str(path))
             if path.suffix.lower() in {".py", ".yaml", ".yml", ".md", ".txt", ".sh"}:
                 text = path.read_text(errors="ignore").lower()
                 for marker in forbidden:

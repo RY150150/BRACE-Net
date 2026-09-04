@@ -28,6 +28,19 @@ class FinalModelSmokeTests(unittest.TestCase):
         if final_conv.bias is not None:
             self.assertEqual(torch.count_nonzero(final_conv.bias).item(), 0)
 
+    def test_released_weight_loads_strictly(self):
+        checkpoint = torch.load("weights/brace_net_final.pth", map_location="cpu")
+        self.assertEqual(checkpoint["model_name"], "BRACE-Net")
+        self.assertEqual(checkpoint["config"], "configs/zpvehicles/brace_net.yaml")
+        self.assertEqual(checkpoint["seed"], 0)
+        self.assertEqual(checkpoint["epoch"], 75)
+        self.assertNotIn("optimizer", checkpoint)
+        self.assertNotIn("scheduler", checkpoint)
+
+        incompatible = self.model.load_state_dict(checkpoint["model"], strict=True)
+        self.assertEqual(incompatible.missing_keys, [])
+        self.assertEqual(incompatible.unexpected_keys, [])
+
     def test_training_and_inference_outputs(self):
         batch_size, num_points = 2, 256
         positions = torch.rand(batch_size, num_points, 3)
