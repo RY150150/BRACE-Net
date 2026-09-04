@@ -20,7 +20,6 @@ slurm_logs/
 
 # Data and model artifacts
 data/raw/
-data/processed/
 *.pth
 *.pt
 *.ckpt
@@ -28,6 +27,14 @@ data/processed/
 *.bin
 *.npz
 *.npy
+
+# The authorized, ready-to-use release dataset is intentionally versioned.
+data/processed/*
+!data/processed/README.md
+!data/processed/samples/
+!data/processed/samples/*.npz
+!data/processed/splits/
+!data/processed/splits/*.txt
 
 # Local environment
 .env

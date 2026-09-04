@@ -99,18 +99,13 @@ def convert_one(
     if out_path.exists() and not overwrite:
         with np.load(out_path) as data:
             y = data["y"]
-            orig_labels = data["orig_labels"] if "orig_labels" in data else None
-        counts = Counter(orig_labels.tolist()) if orig_labels is not None else {}
         positive = int(y.sum())
         total = int(y.shape[0])
         return {
             "sample": sample_name,
-            "label_file": str(label_path),
-            "output": str(out_path),
             "num_points": total,
             "num_positive": positive,
             "positive_ratio": positive / total if total else 0.0,
-            "orig_label_counts": dict(sorted(counts.items())),
             "skipped_existing": True,
         }
 
@@ -123,8 +118,6 @@ def convert_one(
         pos=xyz.astype(np.float32),
         x=x.astype(np.float32),
         y=y.astype(np.uint8),
-        orig_labels=orig_labels.astype(np.int16),
-        source_label_file=np.asarray(str(label_path)),
     )
 
     counts = Counter(orig_labels.tolist())
@@ -132,12 +125,10 @@ def convert_one(
     total = int(y.shape[0])
     return {
         "sample": sample_name,
-        "label_file": str(label_path),
-        "output": str(out_path),
         "num_points": total,
         "num_positive": positive,
         "positive_ratio": positive / total if total else 0.0,
-        "orig_label_counts": dict(sorted(counts.items())),
+        "source_label_counts": dict(sorted(counts.items())),
         "skipped_existing": False,
     }
 
@@ -145,7 +136,7 @@ def convert_one(
 def write_manifest(dst: Path, rows: Sequence[Dict[str, object]], args: argparse.Namespace) -> None:
     manifest = {
         "label_map": {"0": "non_bed", "1": "truck_bed"},
-        "source": str(args.src),
+        "source_dataset": "ZPVehicles/Fence_truck",
         "truck_bed_labels": list(args.truck_bed_labels),
         "feature": args.feature,
         "samples": list(rows),
@@ -156,12 +147,10 @@ def write_manifest(dst: Path, rows: Sequence[Dict[str, object]], args: argparse.
     csv_path = dst / "manifest.csv"
     fieldnames = [
         "sample",
-        "label_file",
-        "output",
         "num_points",
         "num_positive",
         "positive_ratio",
-        "orig_label_counts",
+        "source_label_counts",
         "skipped_existing",
     ]
     with csv_path.open("w", newline="") as fh:
@@ -198,7 +187,7 @@ def main() -> None:
         print(
             f"{row['sample']}: points={row['num_points']} "
             f"truck_bed={row['num_positive']} ratio={row['positive_ratio']:.4f} "
-            f"labels={row['orig_label_counts']} -> {row['output']}"
+            f"labels={row.get('source_label_counts', {})}"
         )
 
     write_manifest(args.dst, rows, args)

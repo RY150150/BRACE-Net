@@ -11,9 +11,10 @@ encoder:
 - training-only boundary supervision with 16-nearest-neighbor targets;
 - a 64x64 XY/XZ/YZ Tri-Plane residual-logit branch.
 
-This repository contains the final model configuration used by the paper. It
-does not include pretrained weights, checkpoints, point clouds, restricted
-annotations, paper drafts, web applications, or alternative ablation models.
+This repository contains the final model configuration and the authorized,
+processed dataset used by the paper. It does not include pretrained weights,
+checkpoints, raw source files, paper drafts, web applications, or alternative
+ablation models.
 
 ## Environment
 
@@ -29,32 +30,36 @@ bash install.sh
 The CUDA extension build requires a working CUDA 11.3 toolchain and a compiler
 compatible with the selected PyTorch wheel.
 
-## Data Preparation
+## Dataset
 
-The code expects task annotations in the ZPVehicles fence-truck layout, with
-one `labeled_3D.txt` file per sample and rows formatted as `x y z label`.
-ZPVehicles is public, while the task-specific annotations used by the paper
-require permission from their authors and are not redistributed here.
+The ready-to-use processed dataset is included under `data/processed/`. It
+contains all 106 fence-truck samples used by the paper, totaling 10,352,125
+annotated points, together with the exact 74/16/16 train/validation/test split.
+No separate preparation step is required before running multi-seed training.
 
-Place authorized source files under `data/raw/Fence_truck/`, then run:
-
-```bash
-python scripts/prepare_dataset.py
-mkdir -p data/processed/splits
-cp data/splits/*.txt data/processed/splits/
-```
-
-The committed split lists reproduce the paper's vehicle-instance-level
-74/16/16 train/validation/test partition. Source label `2` is mapped to
-`truck_bed`; labels `0`, `1`, and `3` are mapped to `non_bed`.
-
-Each generated `.npz` file contains:
+Each `.npz` file contains only the arrays read by the training pipeline:
 
 ```text
 pos: float32 [N, 3]
 x:   float32 [N, 3]
-y:   integer [N]
+y:   uint8   [N]
 ```
+
+The original point clouds come from ZPVehicles, and the task-specific
+truck-compartment annotations follow WLTCL. Their processed binary derivative
+is redistributed here with authorization confirmed by the repository
+maintainer. See `data/processed/README.md` for source citations and terms.
+
+To regenerate the processed files from an authorized copy of the source data,
+place its `Fence_truck` directory under `data/raw/` and run:
+
+```bash
+python scripts/prepare_dataset.py --overwrite
+cp data/splits/*.txt data/processed/splits/
+```
+
+Source label `2` is mapped to `truck_bed`; labels `0`, `1`, and `3` are mapped
+to `non_bed`.
 
 ## Multi-Seed Training
 

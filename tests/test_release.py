@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 
+import numpy as np
 import yaml
 
 
@@ -49,6 +50,33 @@ class ReleaseIntegrityTests(unittest.TestCase):
             self.assertTrue(seen.isdisjoint(names))
             seen.update(names)
         self.assertEqual(len(seen), 106)
+
+    def test_processed_dataset_is_complete_and_sanitized(self):
+        sample_dir = ROOT / "data/processed/samples"
+        sample_paths = sorted(sample_dir.glob("*.npz"))
+        expected_names = {
+            line.strip()
+            for split in ("train", "val", "test")
+            for line in (ROOT / f"data/processed/splits/{split}.txt").read_text().splitlines()
+            if line.strip()
+        }
+
+        self.assertEqual(len(sample_paths), 106)
+        self.assertEqual({path.stem for path in sample_paths}, expected_names)
+
+        total_points = 0
+        for path in sample_paths:
+            with np.load(path, allow_pickle=False) as data:
+                self.assertEqual(set(data.files), {"pos", "x", "y"}, str(path))
+                self.assertEqual(data["pos"].shape, data["x"].shape, str(path))
+                self.assertEqual(data["pos"].shape[1], 3, str(path))
+                self.assertEqual(data["y"].shape, (data["pos"].shape[0],), str(path))
+                self.assertEqual(data["pos"].dtype, np.float32, str(path))
+                self.assertEqual(data["x"].dtype, np.float32, str(path))
+                self.assertEqual(data["y"].dtype, np.uint8, str(path))
+                self.assertTrue(np.isin(data["y"], [0, 1]).all(), str(path))
+                total_points += data["y"].shape[0]
+        self.assertEqual(total_points, 10_352_125)
 
     def test_release_contains_no_weights_or_old_repository_branding(self):
         weight_suffixes = {".pth", ".pt", ".ckpt", ".onnx", ".bin"}
