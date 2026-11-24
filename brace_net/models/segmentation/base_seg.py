@@ -38,15 +38,18 @@ class BRACENet(nn.Module):
         self.decoder = build_model_from_cfg(decoder_cfg)
         feature_channels = self.decoder.out_channels
 
-        main_head_cfg = copy.deepcopy(cls_args)
-        main_head_cfg.in_channels = feature_channels
-        self.head = build_model_from_cfg(main_head_cfg)
-
+        # The paper implementation initializes the projection before the main
+        # head. This order determines which weights receive each seeded draw.
         self.triplane_projection = TriPlaneProjectionModule(
             feature_channels,
             grid_size=triplane_grid_size,
             dropout=triplane_dropout,
         )
+
+        main_head_cfg = copy.deepcopy(cls_args)
+        main_head_cfg.in_channels = feature_channels
+        self.head = build_model_from_cfg(main_head_cfg)
+
         residual_head_cfg = copy.deepcopy(cls_args)
         residual_head_cfg.in_channels = feature_channels
         self.triplane_head = build_model_from_cfg(residual_head_cfg)

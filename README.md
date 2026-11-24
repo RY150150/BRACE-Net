@@ -18,17 +18,26 @@ or alternative ablation models.
 
 ## Environment
 
-The reported environment used Python 3.8.10, PyTorch 1.10.0, CUDA 11.3, and a
-single NVIDIA RTX 3090 GPU.
+The reproduction environment uses Linux x86-64, Python 3.8.10, PyTorch
+1.10.0+cu113 with cuDNN 8.2.0, NumPy 1.21.4, and a single NVIDIA RTX 3090
+GPU. The Conda environment sets up Python and pip. The installer uses the
+pinned versions in `requirements.txt` and builds the CUDA extension.
 
 ```bash
-conda create -n brace-net python=3.8.10 -y
+conda env create -f environment.yml
 conda activate brace-net
 bash install.sh
 ```
 
-The CUDA extension build requires a working CUDA 11.3 toolchain and a compiler
-compatible with the selected PyTorch wheel.
+Install the CUDA 11.3 toolkit and a compatible host compiler before running
+the installer. Set `CUDA_HOME` to the toolkit directory if it is outside
+the default location. The CUDA runtime bundled with PyTorch is used for
+execution, while the toolkit supplies `nvcc` for compiling the extension.
+To check the runtime and the extension after installation, run:
+
+```bash
+python -c "import torch, pointnet2_batch_cuda; print(torch.__version__, torch.version.cuda, torch.backends.cudnn.version()); print(torch.cuda.get_device_name(0))"
+```
 
 ## Dataset
 
@@ -73,9 +82,15 @@ Evaluate the released weight on the held-out test split with:
 ```bash
 python train.py --cfg configs/zpvehicles/brace_net.yaml \
   mode=val \
+  seed=0 \
   pretrained_path=weights/brace_net_final.pth \
   dataset.val.split=test
 ```
+
+The reference CUDA evaluation of this seed 0 checkpoint gives 1.9971% bed
+FPR on 65,536 sampled test points. Its confusion matrix is
+`[[15801, 322], [124, 49289]]` with ground-truth classes as rows and
+predicted classes as columns, ordered non-bed then bed.
 
 SHA-256:
 
@@ -93,7 +108,12 @@ python train_multiseed.py
 
 The default configuration uses 80 epochs, 4096 sampled points, batch size 8,
 AdamW with learning rate 0.001, cosine scheduling, boundary-loss weight 0.2,
-and no data augmentation. To select a GPU explicitly:
+and no data augmentation. The model constructs Tri-Plane before the main
+segmentation head, as in the paper training code, so seeded initialization
+assigns the random draws to the same modules. The best checkpoint for each
+seed is selected by validation mIoU before evaluation on the test split.
+CUDA operations can still introduce variation between independent training
+runs. To select a GPU explicitly:
 
 ```bash
 python train_multiseed.py --cuda-visible-devices 0

@@ -1,8 +1,10 @@
 import unittest
+from unittest.mock import Mock, patch
 
 import torch
 
 from brace_net.models import build_model_from_cfg
+from brace_net.models.segmentation import base_seg
 from brace_net.utils import EasyConfig
 
 
@@ -27,6 +29,27 @@ class FinalModelSmokeTests(unittest.TestCase):
         self.assertEqual(torch.count_nonzero(final_conv.weight).item(), 0)
         if final_conv.bias is not None:
             self.assertEqual(torch.count_nonzero(final_conv.bias).item(), 0)
+
+    def test_paper_initialization_order(self):
+        config = EasyConfig()
+        config.load("configs/zpvehicles/brace_net.yaml", recursive=True)
+        calls = Mock()
+        with patch.object(base_seg, "build_model_from_cfg", wraps=build_model_from_cfg) as builder:
+            with patch.object(
+                base_seg, "TriPlaneProjectionModule", wraps=base_seg.TriPlaneProjectionModule
+            ) as projection:
+                calls.attach_mock(builder, "build")
+                calls.attach_mock(projection, "projection")
+                build_model_from_cfg(config.model)
+
+        order = [
+            args[0].NAME if method == "build" else "TriPlane"
+            for method, args, _ in calls.mock_calls
+        ]
+        self.assertEqual(
+            order,
+            ["BRACEEncoder", "HierarchicalPointDecoder", "TriPlane", "SegHead", "SegHead", "SegHead"],
+        )
 
     def test_released_weight_loads_strictly(self):
         checkpoint = torch.load("weights/brace_net_final.pth", map_location="cpu")
